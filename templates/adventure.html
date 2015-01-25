@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Aloita Seikkailu</h1>
+
+<form method="post" action="">
+  <p>Pituus:
+    <select>
+      <option value="1">Lyhyt (0 kultakolikkoa)</option>
+      <option value="2">Kohtalainen (500 kultakolikkoa)</option>
+      <option value="3">Eeppinen (10 000 kultakolikkoa)</option>
+    </select>
+  </p>
+  <p>Valitse sankarit:
+    <select multiple>
+      <option value="1">Legolas</option>
+    </select>
+  </p>
+  <p><input type="submit" value="Seikkailuun!"></p>
+</form>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Sankarit</h1>
+
+<h2>Kirjaudu</h2>
+<form method="post" action="login">
+  <input name="username">
+  <input type="password" name="password">
+  <input type="submit">
+</form>
+
+<h2>Rekisteröidy</h2>
+<form method="post" action="register">
+  <input name="username">
+  <input type="password" name="password1">
+  <input type="password" name="password2">
+  <input type="submit">
+</form>
+
+<p><a href="game">Esikatsele peliä kirjautumatta</a></p>
+{% endblock %}
