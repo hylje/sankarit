@@ -8,11 +8,11 @@ PBKDF2_ROUNDS = 100000
 PBKDF2_ALGO = "sha256"
 
 def make_password(password):
-    salt = os.urandom(16)
+    salt = binascii.hexlify(os.urandom(16))
 
     return "$".join((
         PBKDF2_ALGO,
-        PBKDF2_ROUNDS,
+        str(PBKDF2_ROUNDS),
         salt,
         binascii.hexlify(
             hashlib.pbkdf2_hmac(PBKDF2_ALGO, password, salt, PBKDF2_ROUNDS)
@@ -39,18 +39,19 @@ def pack_needs_upgrading(pack):
 
 class Player(object):
     @classmethod
-    def register(cls, username, password):
+    def register(cls, username, email, password):
         row = {
             "username": username,
-            "password": make_password(password)
+            "password": make_password(password),
+            "email": email
         }
         c = g.db.cursor()
 
         c.execute("""
-        INSERT INTO player (username, password)
-        VALUES (%(username)s, %(password)s)""", row)
+        INSERT INTO player (username, password, email, gold)
+        VALUES (%(username)s, %(password)s, %(email)s, 0)""", row)
 
-        c.commit()
+        g.db.commit()
 
         c.execute("""
         SELECT id FROM player WHERE username=%(username)s
@@ -58,17 +59,17 @@ class Player(object):
 
         uid, = c.fetchone()
 
-        return cls(uid, username)
+        return cls(uid, username, email)
 
     @classmethod
     def login(cls, username, password):
         c = g.db.cursor()
 
         c.execute("""
-        SELECT id, password FROM player WHERE username=%(username)s
+        SELECT id, email, password FROM player WHERE username=%(username)s
         """, {"username": username})
 
-        uid, password_pack = c.fetchone()
+        uid, email, password_pack = c.fetchone()
 
         if not check_password(password_pack, password):
             return None
@@ -82,13 +83,14 @@ class Player(object):
             WHERE username=%(username)s
             """, {"password": new_pack, "username": username})
 
-            c.commit()
+            g.db.commit()
 
-        return cls(uid, username)
+        return cls(uid, username, email)
 
-    def __init__(self, uid, username):
+    def __init__(self, uid, username, email):
         self.uid = uid
         self.username = username
+        self.email = email
 
     def get_heroes(self):
         from sankarit.models.hero import Hero

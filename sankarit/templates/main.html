@@ -1,22 +1,41 @@
 {% extends "base.html" %}
 
+{% from "_formhelpers.html" import render_field %}
+
 {% block content %}
-<h1>Sankarit</h1>
+<h2>Sankarit</h2>
 
-<h2>Kirjaudu</h2>
-<form method="post" action="login">
-  <input name="username">
-  <input type="password" name="password">
-  <input type="submit">
-</form>
+<p>Sankarit on selainpeli, jossa järjestät ja seuraat sankarijoukon
+seikkailuja. Aloita rekisteröitymällä tai jatka peliä
+kirjautumalla.</p>
 
-<h2>Rekisteröidy</h2>
-<form method="post" action="register">
-  <input name="username">
-  <input type="password" name="password1">
-  <input type="password" name="password2">
-  <input type="submit">
-</form>
+<div>
+  <h3>Kirjaudu</h3>
+  <form method="post" action="login">
+    <dl>
+      {{ login_form.csrf_token }}
+      {{ render_field(login_form.username) }}
+      {{ render_field(login_form.password) }}
+    </dl>
+    <p>
+      <input type="submit" value="Kirjaudu">
+    </p>
+  </form>
+</div>
 
-<p><a href="game">Esikatsele peliä kirjautumatta</a></p>
+<div>
+  <h3>Rekisteröidy</h3>
+  <form method="post" action="register">
+    <dl>
+      {{ reg_form.csrf_token }}
+      {{ render_field(reg_form.username) }}
+      {{ render_field(reg_form.email) }}
+      {{ render_field(reg_form.password1) }}
+      {{ render_field(reg_form.password2) }}
+    </dl>
+    <p>
+      <input type="submit" value="Rekisteröidy">
+    </p>
+  </form>
+</div>
 {% endblock %}

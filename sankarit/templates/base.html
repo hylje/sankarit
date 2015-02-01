@@ -1,3 +1,27 @@
 <!doctype html>
 
+<title>Sankarit</title>
+
+<div>
+  <h1>Sankarit</h1>
+  {% if session["playerid"] %}
+  <p>Kirjautuneena. <a href="game">Pääsivulle</a></p>
+  <form method="post" action="logout">
+    <input type="submit" value="Kirjaudu ulos">
+  </form>
+  {% else %}
+  <p>Ei kirjautuneena. <a href="login">Kirjaudu</a> tai <a href="register">rekisteröidy</a></p>
+  {% endif %}
+</div>
+
+{% with messages = get_flashed_messages(with_categories=True) %}
+  {% if messages %}
+    <ul class="flashes">
+    {% for category, message in messages %}
+      <li class="{{ category }}">{{ message }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
 {% block content %}{% endblock %}
