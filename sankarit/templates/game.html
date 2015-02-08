@@ -3,9 +3,9 @@
 {% block content %}
 <h2>Sankarit</h2>
 
-<p><b>Huom!</b> Peli ei ole vielä interaktiivinen.</p>
+<p><b>Huom!</b> Peli ei ole vielä täysin interaktiivinen. Aloitetut seikkailut eivät vielä pääty koskaan, joten esineitä ei saa.</p>
 
-<p>Sinulla on 4300 kultakolikkoa. <a href="inventory">Selaa varastoa ja varusta sankareita</a></p>
+<p>Sinulla on {{ player.gold }} kultakolikkoa. <a href="inventory">Selaa varastoa ja varusta sankareita</a></p>
 
 <h3>Sankarisi</h3>
 <table>
@@ -16,31 +16,19 @@
     <th>Esinetaso</th>
     <th>Tila</th>
   </tr>
-
+  {% for hero in heroes %}
   <tr>
-    <td>Conan</td>
-    <td>Barbaari</td>
-    <td>5</td>
-    <td>4</td>
-    <td>seikkailulla</td>
+    <td>{{ hero.name }}</td>
+    <td>{{ hero.get_class_name() }}</td>
+    <td>{{ hero.get_level() }}</td>
+    <td>{{ hero.get_item_level() }}</td>
+    <td>{{ hero.get_status_text() }}</td>
   </tr>
-
+  {% else %}
   <tr>
-    <td>Legolas</td>
-    <td>Jousimies</td>
-    <td>4</td>
-    <td>3</td>
-    <td>vapaana</td>
+    <td colspan=5>Ei sankareita. <a href="hero">Luo uusi sankari</a></td>
   </tr>
-
-  <tr>
-    <td>Thrall</td>
-    <td>Poppamies</td>
-    <td>3</td>
-    <td>2</td>
-    <td>parantolassa (3 tuntia jäljellä)</td>
-  </tr>
-
+  {% endfor %}
 </table>
 
 <a href="/hero">Luo uusi sankari</a>
@@ -54,17 +42,17 @@
     <th>Sankarit</th>
   </tr>
 
+  {% for adventure in adventures %}
   <tr>
-    <td>3 tuntia sitten</td>
-    <td>1 tunnin päästä</td>
-    <td>Conan</td>
+    <td>{{ adventure.start_time }}</td>
+    <td>{{ adventure.end_time }}</td>
+    <td>{% for hero in adventure.heroes %}{{ hero.name }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
   </tr>
-
+  {% else %}
   <tr>
-    <td>5 tuntia sitten</td>
-    <td><a href="inventory">Kuittaa saalis</a></td>
-    <td>Thrall</td>
+    <td colspan=3>Ei seikkailuja. <a href="adventure">Aloita uusi seikkailu!</a></td>
   </tr>
+  {% endfor %}
 </table>
 
 <a href="adventure">Aloita uusi seikkailu</a>

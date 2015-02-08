@@ -1,17 +1,55 @@
 {% extends "base.html" %}
 
+{% from "_formhelpers.html" import render_field %}
+
 {% block content %}
 <h1>Luo Sankari</h1>
 
 <form method="post" action="">
-  <p>Nimi: <input name="name"></p>
-  <p>Luokka:
-    <select>
-      <option value="1">Barbaari</option>
-      <option value="2">Jousimies</option>
-      <option value="3">Poppamies</option>
-    </select>
-  </p>
-  <p><input type="submit" value="Luo"></p>
+  {{ form.csrf_token }}
+  <dl>
+    {{ render_field(form.name) }}
+  </dl>
+  <h2>Luokat</h2>
+  <ul>
+  {% for class in classes %}
+  <li>
+    <h3>{{ class.name }}</h3>
+
+    <p>{{ class.description }}</p>
+
+    <table>
+      <tr>
+	<th>Attribuutti</th>
+	<th>Pohja-arvo</th>
+	<th>+ Per taso</th>
+      </tr>
+      <tr>
+	<td>Lihasvoima</td>
+	<td>{{ class.str_base }}</td>
+	<td>{{ class.str_rate }}</td>
+      </tr>
+      <tr>
+	<td>Ketteryys</td>
+	<td>{{ class.agi_base }}</td>
+	<td>{{ class.agi_rate }}</td>
+      </tr>
+      <tr>
+	<td>Älykkyys</td>
+	<td>{{ class.int_base }}</td>
+	<td>{{ class.int_rate }}</td>
+      </tr>
+      <tr>
+	<td>Kestävyys</td>
+	<td>{{ class.con_base }}</td>
+	<td>{{ class.con_rate }}</td>
+      </tr>
+    </table>
+  {% endfor %}
+  </ul>
+  <dl>
+  {{ render_field(form.heroclass) }}
+  </dl>
+  <p><input type="submit" value="Luo sankari"></p>
 </form>
 {% endblock %}

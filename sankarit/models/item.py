@@ -1,5 +1,5 @@
 class Item(object):
-    def __init__(self, iid, level, class_, slot, rarity, player_id, hero_id, adventure_id, player=None):
+    def __init__(self, iid, level, class_, slot, rarity, player_id, hero_id, adventure_id, player=None, hero=None, adventure=None):
         self.iid = iid
         self.level = level
         self.class_ = class_

@@ -87,10 +87,22 @@ class Player(object):
 
         return cls(uid, username, email)
 
-    def __init__(self, uid, username, email):
+    @classmethod
+    def get(cls, uid):
+        c = g.db.cursor()
+        c.execute("""
+        SELECT id, username, email, gold
+        FROM player
+        WHERE id=%(uid)s
+        """, {"uid": uid})
+
+        return cls(*c.fetchone())
+
+    def __init__(self, uid, username, email, gold):
         self.uid = uid
         self.username = username
         self.email = email
+        self.gold = gold
 
     def get_heroes(self):
         from sankarit.models.hero import Hero
@@ -127,3 +139,25 @@ class Player(object):
             ret.append(Item(*row, player=self))
 
         return ret
+
+    def get_adventures(self):
+        from sankarit.models.adventure import Adventure
+
+        c = g.db.cursor()
+        c.execute("""
+        SELECT DISTINCT ON (a.id) a.id, a.start_time, a.end_time, a.class, a.gold
+        FROM adventure a, adventure_hero ah, hero h
+        WHERE h.player_id=%(player_id)s AND ah.hero_id=h.id AND ah.adventure_id=a.id
+        """, {"player_id": self.uid})
+
+        ret = []
+        for adventure in c.fetchall():
+            ret.append(Adventure(*adventure))
+
+        return ret
+
+    def deduct_gold(self, amount):
+        c = g.db.cursor()
+        c.execute("UPDATE player SET gold=gold-%(cost)s WHERE id=%(uid)s",
+                  {"cost": amount, "uid": self.uid})
+        g.db.commit()
