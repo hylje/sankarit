@@ -59,17 +59,17 @@ class Player(object):
 
         uid, = c.fetchone()
 
-        return cls(uid, username, email)
+        return cls(uid, username, email, 0)
 
     @classmethod
     def login(cls, username, password):
         c = g.db.cursor()
 
         c.execute("""
-        SELECT id, email, password FROM player WHERE username=%(username)s
+        SELECT id, email, password, gold FROM player WHERE username=%(username)s
         """, {"username": username})
 
-        uid, email, password_pack = c.fetchone()
+        uid, email, password_pack, gold = c.fetchone()
 
         if not check_password(password_pack, password):
             return None
@@ -85,7 +85,7 @@ class Player(object):
 
             g.db.commit()
 
-        return cls(uid, username, email)
+        return cls(uid, username, email, gold)
 
     @classmethod
     def get(cls, uid):
