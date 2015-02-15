@@ -7,6 +7,7 @@ from sankarit import forms
 from sankarit.models.player import Player
 from sankarit.models.hero import Hero
 from sankarit.models.adventure import Adventure
+from sankarit.models.item import Item
 from sankarit.utils import login_required
 from sankarit import heroclasses, adventureclasses
 
@@ -69,7 +70,7 @@ def adventure():
 
     player = Player.get(session["playerid"])
     heroes = player.get_heroes()
-    form.heroes.choices = [(h.hid, h.name) for h in heroes]
+    form.heroes.choices = [(h.hid, h.name) for h in heroes if h.available()]
 
     if request.method == "POST" and form.validate():
         selected_heroes = []
@@ -92,7 +93,25 @@ def adventure():
 @app.route("/inventory")
 @login_required
 def inventory():
-    return render_template("inventory.html")
+    player = Player.get(session["playerid"])
+
+    newloot = []
+    if "claim" in request.args:
+        adventures = player.get_adventures()
+        for adventure in adventures:
+            if adventure.can_be_claimed():
+                gold_per_player, items = adventure.resolve_reward()
+
+                newloot.append({
+                    "gold": gold_per_player[session["playerid"]],
+                    "new_items": [i for i
+                                  in items
+                                  if i.player_id == session["playerid"]]
+                })
+
+    items = player.get_items()
+
+    return render_template("inventory.html", newloot=newloot, items=items)
 
 @app.route("/hero", methods=["GET", "POST"])
 @login_required
@@ -105,7 +124,25 @@ def hero():
 
     return render_template("hero.html", form=form, classes=heroclasses.CLASSES)
 
-@app.route("/equip")
+@app.route("/equip", methods=["GET", "POST"])
 @login_required
 def equip():
-    return render_template("equip.html")
+    try:
+        item = Item.get(request.args["id"], player_id=session["playerid"])
+    except ValueError:
+        return render_template("equip_noitem.html", status=404)
+
+    player = Player.get(session["playerid"])
+    heroes = player.get_heroes()
+    form = forms.EquipHeroForm(request.form)
+    form.hero.choices = [(h.hid, h.name) for h in heroes if h.available()]
+
+    if request.method == "POST" and form.validate():
+        for hero in heroes:
+            if hero.hid == form.hero.data:
+                item.equip(hero)
+                break
+        flash("Sankari varustettu")
+        return redirect("inventory")
+
+    return render_template("equip.html", item=item, form=form)

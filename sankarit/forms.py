@@ -76,3 +76,10 @@ class NewAdventureForm(Form):
         player = Player.get(session["playerid"])
         if aclass.cost > player.gold:
             raise ValidationError(u"Sinulla ei ole varaa näin pitkään seikkailuun.")
+
+class EquipHeroForm(Form):
+    hero = fields.SelectField(
+        u"Varusta sankari",
+        [validators.Required()],
+        coerce=int
+    )

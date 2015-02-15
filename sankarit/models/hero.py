@@ -1,3 +1,5 @@
+import datetime
+
 from flask import g
 
 from sankarit import heroclasses
@@ -57,13 +59,10 @@ class Hero(object):
             return sum(e.level for e in self.equipment) / len(self.equipment)
         return 0
 
-    def get_status_text(self):
-        # XXX get status based from last adventure;
-        # 0.5*adventure_length if it was successful,
-        # 1.5*adventure_length if not
-        return u"Kunnossa"
-
     def get_equipment(self):
+        # XXX move to Item
+        from sankarit.models.item import Item
+
         c = g.db.cursor()
 
         c.execute("""
@@ -76,5 +75,62 @@ class Hero(object):
         ret = []
         for item in c.fetchall():
             ret.append(Item(*item, player=self.player, hero=self))
-
         return ret
+
+    # XXX implement final offense/defense stats based on class, items and level
+
+    def offense(self):
+        return 1
+
+    def defense(self):
+        return 1
+
+    def defense_factor(self):
+        return 1
+
+    STATUS = IDLE, RECOVERING, ADVENTURE = range(3)
+    STATUS_CHOICES = (
+        (IDLE, "Vapaalla"),
+        (RECOVERING, "Palautuu seikkailusta"),
+        (ADVENTURE, "Seikkailee")
+    )
+
+    def status(self):
+        """Check if this hero is or has recently been on an adventure
+        """
+        from sankarit.models.adventure import Adventure
+
+        # XXX do this in adventure model
+        c = g.db.cursor()
+        c.execute("""
+        SELECT a.id, a.start_time, a.end_time, a.class, a.gold
+        FROM adventure a, adventure_hero ah
+        WHERE ah.hero_id=%(hid)s
+          AND ah.adventure_id=a.id
+          AND a.end_time + (a.end_time - a.start_time)*2 > now()
+        ORDER BY a.end_time
+        """,
+                  {"hid": self.hid})
+
+        adventures = [Adventure(*row) for row in c.fetchall()]
+
+        # since a hero shouldn't be able to go on an adventure while
+        # recovering, we should have 1 or 0 rows here. but race
+        # conditions are possible.
+        for adventure in adventures:
+            if adventure.end_time > datetime.datetime.now():
+                return self.ADVENTURE
+            else:
+                return self.RECOVERING
+        else:
+            return self.IDLE
+
+    def status_text(self):
+        status = self.status()
+        for i, text in self.STATUS_CHOICES:
+            if i == status:
+                return text
+        return "Tuntematon"
+
+    def available(self):
+        return self.status() == self.IDLE

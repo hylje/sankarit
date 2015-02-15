@@ -1,11 +1,28 @@
 {% extends "base.html" %}
 
+{% from "_itemhelpers.html" import render_item %}
+
 {% block content %}
-<h1>Varasto</h1>
+<h2>Varasto</h2>
+
+{% for new in newloot %}
+<div>
+<h2>Seikkailu ohi!</h2>
+<p>Sait {{ new.gold }} kultaa saaliina päättyneestä seikkailusta.</p>
+{% if new.items %}
+<p>Sait myös uusia esineitä:</p>
+<ul>
+  {% for item in new.new_items %}
+  {{ render_item(item) }}
+  {% endfor %}
+</ul>
+{% endif %}
+</div>
+{% endfor %}
 
 <ul>
-  <li><a href="equip">Rintapanssari (uusi saalis!)</a></li>
-  <li><a href="#">Jousipyssy</a></li>
-  <li><a href="#">Taikapavut</a></li>
+  {% for item in items %}
+  {{ render_item(item) }}
+  {% endfor %}
 </ul>
 {% endblock %}

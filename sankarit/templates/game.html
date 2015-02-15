@@ -22,7 +22,7 @@
     <td>{{ hero.get_class_name() }}</td>
     <td>{{ hero.get_level() }}</td>
     <td>{{ hero.get_item_level() }}</td>
-    <td>{{ hero.get_status_text() }}</td>
+    <td>{{ hero.status_text() }}</td>
   </tr>
   {% else %}
   <tr>
@@ -45,7 +45,11 @@
   {% for adventure in adventures %}
   <tr>
     <td>{{ adventure.start_time }}</td>
-    <td>{{ adventure.end_time }}</td>
+    <td>
+      {% if adventure.can_be_claimed() %}
+      <a href="inventory?claim">Kuittaa saalis</a>
+      {% else %}{{ adventure.end_time }}{% endif %}
+    </td>
     <td>{% for hero in adventure.heroes %}{{ hero.name }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
   </tr>
   {% else %}

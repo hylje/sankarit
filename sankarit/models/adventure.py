@@ -1,10 +1,12 @@
 import itertools
 import random
 import datetime
+from collections import defaultdict
 
 from flask import g
 
 from sankarit import itemclasses, adventureclasses
+from sankarit.models.item import Item
 
 class Adventure(object):
     @classmethod
@@ -67,8 +69,16 @@ class Adventure(object):
             ret.append(Hero(*hero))
         return ret
 
+    def can_be_claimed(self):
+        if self.end_time < datetime.datetime.now() and self.gold == 0:
+            return True
+        else:
+            return False
+
     def resolve_reward(self):
         # XXX maybe split this into more functions
+        c = g.db.cursor()
+
         offense = (sum(hero.offense() for hero in self.heroes)
                    * random.random() * 4
                    * (self.adventureclass.timedelta.total_seconds() / 2400))
@@ -86,6 +96,10 @@ class Adventure(object):
         gold_rating = int(success_rating * gold_ratio)
         xp_rating = int(success_rating * 0.5)
 
+        c.execute("""
+        UPDATE adventure SET gold=%(gold)s WHERE id=%(aid)s
+        """, {"gold": gold_rating, "aid": self.aid})
+
         level_total = sum(hero.get_level() for hero in self.heroes)
         gold_per_player = defaultdict(int)
         loot_per_player = defaultdict(int)
@@ -99,7 +113,7 @@ class Adventure(object):
 
             c.execute("""
             UPDATE hero SET xp=xp+%(gained_xp)s WHERE id=%(hero_id)s
-            """, {"gained_xp": gained_xp, "hero_id": hero.id})
+            """, {"gained_xp": gained_xp, "hero_id": hero.hid})
 
             gold_per_player[hero.player_id] += gained_gold
             loot_per_player[hero.player_id] += gained_loot
@@ -128,24 +142,41 @@ class Adventure(object):
 
             # no item drops if loot_total < 100
             retries = loot_total / 100
+            # XXX move item generation to the item model
             item_qualities = []
             for i in range(retries):
                 level = random.randrange(min_level, max_level)
-                rarity = roll_rarity()
-                items.append((level, rarity))
+                rarity = itemclasses.roll_rarity()
+                item_qualities.append((level, rarity))
                 # drop the worst item (weighing rarity)
                 if len(items) > max_items:
-                    items.sort(key=lambda l, r: l+(r*2), reverse=True)
-                    items.pop()
+                    item_qualities.sort(
+                        key=lambda (l, r): l+(r*2),
+                        reverse=True
+                    )
+                    item_qualities.pop()
 
             for level, rarity in item_qualities:
-                itemclass = random.choice(itemclasses.CLASSES).id
-                slot = itemclass.slot
-                items.append((level, itemclass, slot, rarity, player_id, self.aid))
-        c.execute("""
-        INSERT INTO item (level, class, slot, rarity, player_id, adventure_id)
-        VALUES """ + ", ".join("(%s, %s, %s, %s, %s, %s" for i in items),
-                  list(itertools.chain(items)))
+                itemclass = random.choice(itemclasses.CLASSES)
+                items.append((level, itemclass.id, itemclass.slot,
+                              rarity, player_id, self.aid))
+
+        if items:
+            c.execute("""
+            INSERT INTO item (level, class, slot, rarity, player_id,
+                              adventure_id)
+            VALUES """
+            + ", ".join("(%s, %s, %s, %s, %s, %s)" for i in items)
+            + """
+            RETURNING id, level, class, slot, rarity, player_id,
+            hero_id, adventure_id
+            """, list(itertools.chain(*items)))
+
+            itemobjs = [Item(*row, adventure=self) for row in c.fetchall()]
+        else:
+            itemobjs = []
 
         # commit the entire thing
         g.db.commit()
+
+        return gold_per_player, itemobjs

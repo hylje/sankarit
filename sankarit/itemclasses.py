@@ -1,6 +1,15 @@
+import random
+
 SLOTS = HELM, CHEST, GLOVES, BOOTS, BELT = range(5)
 
 RARITY = POOR, COMMON, UNCOMMON, RARE, EPIC = range(5)
+
+def roll_rarity():
+    """Gets a rarity according to standard distribution"""
+    for rarity in RARITY:
+        if random.random() < 0.9:
+            break
+    return rarity
 
 class BaseItem(object):
     pass

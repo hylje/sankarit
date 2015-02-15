@@ -1,0 +1,10 @@
+{% macro render_item(item) %}
+<li>
+  {{ render_item_simple(item) }}
+  <p>Sankari: {% if item.hero %}<em>{{ item.hero.name }}</em>{% else %}Ei{% endif %} <a href="equip?id={{ item.iid }}">Varusta sankarille</a></p>
+</li>
+{% endmacro %}
+
+{% macro render_item_simple(item) %}
+<p>Esine: Luokka {{ item.itemclass }}, taso {{ item.level }}, harvinaisuus {{ item.rarity }}</p>
+{% endmacro %}

@@ -1,19 +1,20 @@
 {% extends "base.html" %}
 
+{% from "_itemhelpers.html" import render_item_simple %}
+{% from "_formhelpers.html" import render_field %}
+
 {% block content %}
 
-<h1>Varusta sankaria</h1>
+<h2>Varusta sankaria</h2>
+
+{{ render_item_simple(item) }}
 
 <p>Jos sankarilla on jo varustettu saman lokeron esine, vanha esine
 korvataan ja se palaa varastoon.</p>
 
 <form method="post" action="">
-  <p>Kohdesankari:
-    <select>
-      <option value="1">Legolas</option>
-      <option value="2">Thrall</option>
-    </select>
-  </p>
+  {{ form.csrf_token }}
+  {{ render_field(form.hero) }}
   <p><input type="submit" value="Varusta"></p>
 </form>
 {% endblock %}

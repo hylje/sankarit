@@ -124,19 +124,30 @@ class Player(object):
 
     def get_items(self):
         from sankarit.models.item import Item
+        from sankarit.models.hero import Hero
 
         c = g.db.cursor()
 
         c.execute("""
-        SELECT id, level, class, slot, rarity, player_id, hero_id, adventure_id
-        FROM item
-        WHERE player_id=%(player_id)s
+        SELECT i.id, i.level, i.class, i.slot, i.rarity,
+               i.player_id, i.hero_id, i.adventure_id,
+               h.id, h.name, h.class, h.xp, h.player_id
+        FROM item i
+        LEFT OUTER JOIN hero h ON i.hero_id=h.id
+        WHERE i.player_id=%(player_id)s
+        ORDER BY i.rarity DESC, i.level DESC
         """, {"player_id": self.uid})
 
         ret = []
 
         for row in c.fetchall():
-            ret.append(Item(*row, player=self))
+            item = row[:8]
+            hero = row[8:]
+            if hero[0] is not None:
+                hero = Hero(*hero)
+            else:
+                hero = None
+            ret.append(Item(*item, player=self, hero=hero))
 
         return ret
 
@@ -147,7 +158,10 @@ class Player(object):
         c.execute("""
         SELECT DISTINCT ON (a.id) a.id, a.start_time, a.end_time, a.class, a.gold
         FROM adventure a, adventure_hero ah, hero h
-        WHERE h.player_id=%(player_id)s AND ah.hero_id=h.id AND ah.adventure_id=a.id
+        WHERE h.player_id=%(player_id)s
+          AND ah.hero_id=h.id
+          AND ah.adventure_id=a.id
+          AND a.gold=0
         """, {"player_id": self.uid})
 
         ret = []
