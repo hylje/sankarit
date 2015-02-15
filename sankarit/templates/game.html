@@ -3,7 +3,7 @@
 {% block content %}
 <h2>Sankarit</h2>
 
-<p><b>Huom!</b> Peli ei ole vielä täysin interaktiivinen. Aloitetut seikkailut eivät vielä pääty koskaan, joten esineitä ei saa.</p>
+<p><b>Uutta!</b> Peli on ominaisuuksiltaan valmis! Jatkossa tulee komeampi leiska ja pelimekaanista optimointia.</p>
 
 <p>Sinulla on {{ player.gold }} kultakolikkoa. <a href="inventory">Selaa varastoa ja varusta sankareita</a></p>
 
@@ -18,7 +18,7 @@
   </tr>
   {% for hero in heroes %}
   <tr>
-    <td>{{ hero.name }}</td>
+    <td><a href="hero_view?id={{ hero.hid }}">{{ hero.name }}</a></td>
     <td>{{ hero.get_class_name() }}</td>
     <td>{{ hero.get_level() }}</td>
     <td>{{ hero.get_item_level() }}</td>

@@ -1,8 +1,10 @@
+# -*- encoding: utf-8 -*-
+
 import datetime
 
 from flask import g
 
-from sankarit import heroclasses
+from sankarit import heroclasses, itemclasses
 
 class Hero(object):
     def __init__(self, hid, name, heroclass_id, xp, player_id, player=None):
@@ -48,6 +50,25 @@ class Hero(object):
 
         return cls(*c.fetchone())
 
+    @classmethod
+    def get(cls, hid, player_id=None):
+        c = g.db.cursor()
+
+        query = """
+        SELECT id, name, class, xp, player_id
+        FROM hero
+        WHERE id=%(hid)s
+        """
+        kwargs = {"hid": hid}
+
+        if player_id is not None:
+            query += " AND player_id=%(pid)s"
+            kwargs["pid"] = player_id
+
+        c.execute(query, kwargs)
+
+        return cls(*c.fetchone())
+
     def get_class_name(self):
         return self.heroclass.name
 
@@ -56,7 +77,7 @@ class Hero(object):
 
     def get_item_level(self):
         if self.equipment:
-            return sum(e.level for e in self.equipment) / len(self.equipment)
+            return sum(e.level for e in self.equipment) / float(len(itemclasses.SLOTS))
         return 0
 
     def get_equipment(self):
@@ -77,22 +98,53 @@ class Hero(object):
             ret.append(Item(*item, player=self.player, hero=self))
         return ret
 
+    def get_stats_display(self):
+        base_stats = self.heroclass.base_stats(self.xp)
+        stats = self.get_stats()
+
+        return (
+            (u"Voima", base_stats["str"], stats["str"]),
+            (u"Ketteryys", base_stats["agi"], stats["agi"]),
+            (u"Älykkyys", base_stats["int"], stats["int"]),
+            (u"Kestävyys", base_stats["con"], stats["con"])
+        )
+
+    def get_stats(self):
+        stats = self.heroclass.base_stats(self.xp)
+
+        for item in self.get_equipment():
+            for k, v in item.get_stats().iteritems():
+                stats[k] += v
+
+        return stats
+
     # XXX implement final offense/defense stats based on class, items and level
 
     def offense(self):
-        return 1
+        return self.heroclass.get_offense(self.get_stats())
 
     def defense(self):
-        return 1
+        return self.heroclass.get_defense(self.get_stats())
 
     def defense_factor(self):
-        return 1
+        return self.heroclass.get_defense_factor(self.get_stats())
+
+    def get_secondary_stats_display(self):
+        stats = (
+            (u"Hyökkäys", self.offense()),
+            (u"Puolustus", self.defense()),
+        )
+
+        if self.defense_factor() != 1:
+            stats += (u"Puolustuskerroin", self.defense_factor())
+
+        return stats
 
     STATUS = IDLE, RECOVERING, ADVENTURE = range(3)
     STATUS_CHOICES = (
-        (IDLE, "Vapaalla"),
-        (RECOVERING, "Palautuu seikkailusta"),
-        (ADVENTURE, "Seikkailee")
+        (IDLE, u"Vapaalla"),
+        (RECOVERING, u"Palautumassa seikkailusta"),
+        (ADVENTURE, u"Seikkailemassa")
     )
 
     def status(self):

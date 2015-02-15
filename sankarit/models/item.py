@@ -1,3 +1,5 @@
+# -*- encoding: utf-8 -*-
+
 import random
 
 from flask import g
@@ -5,11 +7,12 @@ from flask import g
 from sankarit import itemclasses
 
 class Item(object):
-    def __init__(self, iid, level, itemclass, slot, rarity, player_id, hero_id,
+    def __init__(self, iid, level, itemclass_id, slot, rarity, player_id, hero_id,
                  adventure_id, player=None, hero=None, adventure=None):
         self.iid = iid
         self.level = level
-        self.itemclass = itemclass
+        self.itemclass_id = itemclass_id
+        self.itemclass = itemclasses.get_itemclass(itemclass_id)
         self.slot = slot
         self.rarity = rarity
         self.player_id = player_id
@@ -47,7 +50,7 @@ class Item(object):
         c = g.db.cursor()
 
         for player_id, loot_total in loot_per_player.iteritems():
-            our_heroes = [h for h in heroes if h.player_id == player_id]
+            our_heroes = [h for h in all_heroes if h.player_id == player_id]
             max_items = len(our_heroes) * 2
             max_level = max(h.get_level() for h in our_heroes) + 2
             min_level = max(
@@ -118,3 +121,30 @@ class Item(object):
                   {"hid": hero.hid, "iid": self.iid})
 
         g.db.commit()
+
+    def get_stats_display(self):
+        base_stats = self.get_stats()
+
+        stats = [
+            (u"Voima", base_stats["str"]),
+            (u"Ketteryys", base_stats["agi"]),
+            (u"Älykkyys", base_stats["int"]),
+            (u"Kestävyys", base_stats["con"])
+        ]
+
+        return [(k,v) for k,v in stats if v>0]
+
+    def get_stats(self):
+        return {
+            "str": self.itemclass.get_str(self.level, self.rarity),
+            "agi": self.itemclass.get_agi(self.level, self.rarity),
+            "int": self.itemclass.get_int(self.level, self.rarity),
+            "con": self.itemclass.get_con(self.level, self.rarity)
+        }
+
+
+    def get_rarity_display(self):
+        for i, text in itemclasses.RARITY_CHOICES:
+            if i == self.rarity:
+                return text
+        return u"Tuntematon"

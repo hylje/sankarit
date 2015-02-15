@@ -1,10 +1,19 @@
 {% macro render_item(item) %}
 <li>
   {{ render_item_simple(item) }}
-  <p>Sankari: {% if item.hero %}<em>{{ item.hero.name }}</em>{% else %}Ei{% endif %} <a href="equip?id={{ item.iid }}">Varusta sankarille</a></p>
+  <p>Sankari: {% if item.hero %}<a href="hero_view?id={{ item.hero.hid }}"><em>{{ item.hero.name }}</em></a>{% else %}Ei{% endif %} <a href="equip?id={{ item.iid }}">Varusta sankarille</a></p>
 </li>
 {% endmacro %}
 
 {% macro render_item_simple(item) %}
-<p>Esine: Luokka {{ item.itemclass }}, taso {{ item.level }}, harvinaisuus {{ item.rarity }}</p>
+<p>
+  <em>{{ item.itemclass.name }}</em><br>
+  <small>Tason {{ item.level }} {{ item.get_rarity_display() }} {{ item.itemclass.slot_name }}</small>
+  <dl>
+  {% for stat_name, stat in item.get_stats_display() %}
+  <dt>{{ stat_name }}</dt>
+  <dd>+{{ stat }}</dd>
+  {% endfor %}
+  </dl>
+</p>
 {% endmacro %}

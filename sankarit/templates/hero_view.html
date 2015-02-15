@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% from "_itemhelpers.html" import render_item_simple %}
+
+{% block content %}
+<h2>
+  Sankari <em>{{ hero.name }}</em>
+  <br><small>Tason {{ hero.get_level() }} {{ hero.get_class_name() }}</small>
+</h2>
+
+<p>Sankari on nyt <em>{{ hero.status_text() }}</em></p>
+
+<h3>Varustus</h3>
+
+<ul>
+  {% for item in hero.get_equipment() %}
+  <li>{{ render_item_simple(item) }}</li>
+  {% endfor %}
+</ul>
+
+<a href="inventory">Varasto</a>
+
+<h3>Tiedot</h3>
+
+<table>
+  <tr>
+    <th>Tieto</th>
+    <th>Perusarvo</th>
+    <th>Kokonaisarvo</th>
+  </tr>
+  {% for stat_name, stat_base, stat_total in hero.get_stats_display() %}
+  <tr>
+    <td>{{ stat_name }}</td>
+    <td>{{ stat_base }}</td>
+    <td>{{ stat_total }}</td>
+  </tr>
+  {% endfor %}
+  {% for stat_name, stat_total in hero.get_secondary_stats_display() %}
+  <tr>
+    <td>{{ stat_name }}</td>
+    <td>-</td>
+    <td>{{ stat_total }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

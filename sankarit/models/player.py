@@ -122,11 +122,24 @@ class Player(object):
 
         return ret
 
-    def get_items(self):
+    def get_item_count(self):
+        c = g.db.cursor()
+
+        c.execute("SELECT count(id) FROM item WHERE player_id=%(player_id)s",
+                  {"player_id": self.uid})
+
+        count, = c.fetchone()
+
+        return count
+
+    def get_items(self, offset=None):
         from sankarit.models.item import Item
         from sankarit.models.hero import Hero
 
         c = g.db.cursor()
+
+        if offset is None:
+            offset = 0
 
         c.execute("""
         SELECT i.id, i.level, i.class, i.slot, i.rarity,
@@ -136,7 +149,8 @@ class Player(object):
         LEFT OUTER JOIN hero h ON i.hero_id=h.id
         WHERE i.player_id=%(player_id)s
         ORDER BY i.rarity DESC, i.level DESC
-        """, {"player_id": self.uid})
+        LIMIT 100 OFFSET %(offset)s
+        """, {"player_id": self.uid, "offset": offset})
 
         ret = []
 

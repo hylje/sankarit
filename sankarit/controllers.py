@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 
-from flask import render_template, session, request, redirect, flash, g
+from flask import (render_template, session, request, redirect,
+                   flash, g, make_response)
 
 from sankarit import app
 from sankarit import forms
@@ -109,9 +110,31 @@ def inventory():
                                   if i.player_id == session["playerid"]]
                 })
 
-    items = player.get_items()
+    try:
+        page = int(request.args.get("page", 0))
+        offset = page * 100
+    except ValueError:
+        page = 0
+        offset = 0
 
-    return render_template("inventory.html", newloot=newloot, items=items)
+    items_count = player.get_item_count()
+
+    if offset > items_count:
+        offset = 0
+
+    if offset == 0:
+        prev_page = None
+    else:
+        prev_page = offset/100 - 1
+
+    if items_count - offset > 100:
+        next_page = offset/100 + 1
+    else:
+        next_page = None
+
+    items = player.get_items(offset=offset)
+
+    return render_template("inventory.html", newloot=newloot, items=items, next_page=next_page, prev_page=prev_page, items_count=items_count, page=page)
 
 @app.route("/hero", methods=["GET", "POST"])
 @login_required
@@ -124,13 +147,28 @@ def hero():
 
     return render_template("hero.html", form=form, classes=heroclasses.CLASSES)
 
+@app.route("/hero_view")
+@login_required
+def view_hero():
+    try:
+        heroid = int(request.args["id"])
+    except (ValueError, KeyError):
+        return make_response(render_template("hero_not_found.html"), 404)
+
+    hero = Hero.get(heroid, player_id=session["playerid"])
+
+    if not hero:
+        return make_response(render_template("hero_not_found.html"), 404)
+
+    return render_template("hero_view.html", hero=hero)
+
 @app.route("/equip", methods=["GET", "POST"])
 @login_required
 def equip():
     try:
         item = Item.get(request.args["id"], player_id=session["playerid"])
     except ValueError:
-        return render_template("equip_noitem.html", status=404)
+        return make_response(render_template("equip_noitem.html"), 404)
 
     player = Player.get(session["playerid"])
     heroes = player.get_heroes()

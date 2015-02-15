@@ -5,12 +5,6 @@ import datetime
 class BaseAdventure(object):
     pass
 
-class TinyAdventure(BaseAdventure):
-    id = 4
-    timedelta = datetime.timedelta(seconds=5)
-    cost = 0
-    name = u"Tosi lyhyt seikkailu (Hinta: 0)"
-
 class ShortAdventure(BaseAdventure):
     id = 1
     timedelta = datetime.timedelta(hours=2)
@@ -29,7 +23,8 @@ class EpicAdventure(BaseAdventure):
     cost = 10000
     name = u"Eeppinen seikkailu (Hinta: 10000)"
 
-CLASSES = [TinyAdventure(), ShortAdventure(), MediumAdventure(), EpicAdventure()]
+CLASSES = [ShortAdventure(), MediumAdventure(), EpicAdventure()]
+
 def get_adventureclass(id):
     for adventure in CLASSES:
         if adventure.id == id:

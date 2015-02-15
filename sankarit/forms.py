@@ -77,6 +77,10 @@ class NewAdventureForm(Form):
         if aclass.cost > player.gold:
             raise ValidationError(u"Sinulla ei ole varaa näin pitkään seikkailuun.")
 
+    def validate_heroes(self, field):
+        if len(field.data) > 5:
+            raise ValidationError(u"Korkeintaan 5 sankaria voi seikkailla samassa seikkailussa.")
+
 class EquipHeroForm(Form):
     hero = fields.SelectField(
         u"Varusta sankari",

@@ -20,6 +20,18 @@
 </div>
 {% endfor %}
 
+<p>
+  Yhteensä <em>{{ items_count }}</em> esinettä varastossa. Sivu <em>{{ page }}</em>.
+
+  {% if prev_page is not none %}
+  <a href="inventory?page={{ prev_page }}">Edellinen sivu</a>
+  {% endif %}
+
+  {% if next_page is not none %}
+  <a href="inventory?page={{ next_page }}">Seuraava sivu</a>
+  {% endif %}
+</p>
+
 <ul>
   {% for item in items %}
   {{ render_item(item) }}

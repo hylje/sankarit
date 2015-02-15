@@ -87,7 +87,7 @@ class Adventure(object):
                    * random.random() * 3
                    * (self.adventureclass.timedelta.total_seconds() / 2400))
 
-        success_rating = min(offense, defense*3/2) * 1000
+        success_rating = min(offense, defense*3/2)
 
         loot_ratio = random.random()
         gold_ratio = 1 - loot_ratio
@@ -123,58 +123,7 @@ class Adventure(object):
             UPDATE player SET gold=gold+%(gold_total)s WHERE id=%(player_id)s
             """, {"gold_total": gold_total, "player_id": player_id})
 
-        items = []
-
-        for player_id, loot_total in loot_per_player.iteritems():
-            our_heroes = [h for h in self.heroes if h.player_id == player_id]
-            max_items = len(our_heroes) * 2
-            max_level = max(h.get_level() for h in our_heroes) + 2
-            min_level = max(
-                # never less than 1
-                1,
-                min(
-                    # either the lowest level hero minus 3
-                    max(
-                        1,
-                        min(h.get_level() for h in our_heroes)-3),
-                    # or the maximum item level minus ten
-                    max_level-10))
-
-            # no item drops if loot_total < 100
-            retries = loot_total / 100
-            # XXX move item generation to the item model
-            item_qualities = []
-            for i in range(retries):
-                level = random.randrange(min_level, max_level)
-                rarity = itemclasses.roll_rarity()
-                item_qualities.append((level, rarity))
-                # drop the worst item (weighing rarity)
-                if len(items) > max_items:
-                    item_qualities.sort(
-                        key=lambda (l, r): l+(r*2),
-                        reverse=True
-                    )
-                    item_qualities.pop()
-
-            for level, rarity in item_qualities:
-                itemclass = random.choice(itemclasses.CLASSES)
-                items.append((level, itemclass.id, itemclass.slot,
-                              rarity, player_id, self.aid))
-
-        if items:
-            c.execute("""
-            INSERT INTO item (level, class, slot, rarity, player_id,
-                              adventure_id)
-            VALUES """
-            + ", ".join("(%s, %s, %s, %s, %s, %s)" for i in items)
-            + """
-            RETURNING id, level, class, slot, rarity, player_id,
-            hero_id, adventure_id
-            """, list(itertools.chain(*items)))
-
-            itemobjs = [Item(*row, adventure=self) for row in c.fetchall()]
-        else:
-            itemobjs = []
+        itemobjs = Item.generate(loot_per_player, self.heroes)
 
         # commit the entire thing
         g.db.commit()
