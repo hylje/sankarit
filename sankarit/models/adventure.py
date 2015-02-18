@@ -89,7 +89,7 @@ class Adventure(object):
                    * random.random() * 3
                    * (self.adventureclass.timedelta.total_seconds() / 2400))
 
-        success_rating = min(offense, defense*3/2)
+        success_rating = min(offense, defense*3/2) * 5
 
         loot_ratio = random.random()
         gold_ratio = 1 - loot_ratio
