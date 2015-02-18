@@ -150,7 +150,7 @@ class Adventure(object):
         valid_bits = [(time, text) for time, text in bits if time > 0]
 
         if valid_bits:
-            valid_bits = valid_bits[2:]
+            valid_bits = valid_bits[:2]
             return u", ".join(u"%s %s" % b for b in valid_bits) + u" sitten"
         else:
             return u"Juuri nyt"
