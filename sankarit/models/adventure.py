@@ -1,3 +1,5 @@
+# -*- encoding: utf-8 -*-
+
 import itertools
 import random
 import datetime
@@ -129,3 +131,40 @@ class Adventure(object):
         g.db.commit()
 
         return gold_per_player, itemobjs
+
+    def started_ago(self):
+        now = datetime.datetime.now()
+
+        if self.start_time > now:
+            return "Tulossa"
+
+        td = now - self.start_time
+
+        bits = [
+            (td.days, u"päivää"),
+            (td.seconds / 3600,u"tuntia"),
+            (td.seconds / 60, u"minuuttia"),
+            (td.seconds % 60, u"sekuntia")
+        ]
+
+        valid_bits = [(time, text) for time, text in bits if time > 0]
+
+        if valid_bits:
+            return u", ".join(u"%s %s" % b for b in valid_bits) + u" sitten"
+        else:
+            return u"Juuri nyt"
+
+
+    def progress(self):
+        now = datetime.datetime.now()
+
+        if self.end_time < now:
+            return 1
+        if self.start_time > now:
+            return 0
+
+        factor = (self.end_time - now).total_seconds() / float((self.end_time - self.start_time).total_seconds())
+        complement = 1 - factor
+        percent = 100 * complement
+
+        return "%.04f" % percent

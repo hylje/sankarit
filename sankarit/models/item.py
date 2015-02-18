@@ -65,12 +65,14 @@ class Item(object):
                     max_level-10))
 
             # no item drops if loot_total < 100
-            retries = loot_total / 100
+            # limit the amount of retries (compensate with minimum rarity)
+            retries = min(loot_total / 100, 50)
+            min_rarity = min(loot_total / 5000, itemclasses.RARITY[-1])
 
             item_qualities = []
             for i in range(retries):
                 level = random.randrange(min_level, max_level)
-                rarity = itemclasses.roll_rarity()
+                rarity = max(min_rarity, itemclasses.roll_rarity())
                 item_qualities.append((level, rarity))
                 # drop the worst item (weighing rarity)
                 if len(items) > max_items:

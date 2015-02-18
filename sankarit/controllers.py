@@ -142,6 +142,11 @@ def hero():
     form = forms.HeroCreateForm(request.form)
 
     if request.method == "POST" and form.validate():
+        player = Player.get(session["playerid"])
+        if len(player.get_heroes()) >= 10:
+            flash("Sinulla on jo maksimimäärä sankareita.")
+            return redirect("game")
+
         Hero.create(form.name.data, form.heroclass.data, session["playerid"])
         return redirect("game")
 

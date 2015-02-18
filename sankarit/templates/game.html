@@ -3,12 +3,10 @@
 {% block content %}
 <h2>Sankarit</h2>
 
-<p><b>Uutta!</b> Peli on ominaisuuksiltaan valmis! Jatkossa tulee komeampi leiska ja pelimekaanista optimointia.</p>
-
 <p>Sinulla on {{ player.gold }} kultakolikkoa. <a href="inventory">Selaa varastoa ja varusta sankareita</a></p>
 
 <h3>Sankarisi</h3>
-<table>
+<table class="table">
   <tr>
     <th>Nimi</th>
     <th>Luokka</th>
@@ -31,11 +29,11 @@
   {% endfor %}
 </table>
 
-<a href="/hero">Luo uusi sankari</a>
+<a href="hero">Luo uusi sankari</a>
 
 <h3>Seikkailut</h3>
 
-<table>
+<table class="table">
   <tr>
     <th>Alkoi</th>
     <th>Loppuu</th>
@@ -44,11 +42,17 @@
 
   {% for adventure in adventures %}
   <tr>
-    <td>{{ adventure.start_time }}</td>
+    <td>{{ adventure.started_ago() }}</td>
     <td>
       {% if adventure.can_be_claimed() %}
       <a href="inventory?claim">Kuittaa saalis</a>
-      {% else %}{{ adventure.end_time }}{% endif %}
+      {% else %}
+      <div class="progress">
+	<div class="progress-bar" role="progressbar" aria-valuenow="{{ adventure.progress() }} " aria-valuemin="0" aria-valuemax="100" style="width: {{ adventure.progress() }}%;">
+	  {{ adventure.progress() }}% Complete
+	</div>
+      </div>
+      {% endif %}
     </td>
     <td>{% for hero in adventure.heroes %}{{ hero.name }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
   </tr>
