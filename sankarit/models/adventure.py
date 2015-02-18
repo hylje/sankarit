@@ -142,14 +142,15 @@ class Adventure(object):
 
         bits = [
             (td.days, u"päivää"),
-            (td.seconds / 3600,u"tuntia"),
-            (td.seconds / 60, u"minuuttia"),
+            (td.seconds / 3600, u"tuntia"),
+            ((td.seconds / 60) % 60, u"minuuttia"),
             (td.seconds % 60, u"sekuntia")
         ]
 
         valid_bits = [(time, text) for time, text in bits if time > 0]
 
         if valid_bits:
+            valid_bits = valid_bits[2:]
             return u", ".join(u"%s %s" % b for b in valid_bits) + u" sitten"
         else:
             return u"Juuri nyt"
