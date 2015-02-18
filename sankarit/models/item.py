@@ -49,6 +49,8 @@ class Item(object):
 
         c = g.db.cursor()
 
+        items = []
+
         for player_id, loot_total in loot_per_player.iteritems():
             our_heroes = [h for h in all_heroes if h.player_id == player_id]
             max_items = len(our_heroes) * 2
@@ -118,7 +120,6 @@ class Item(object):
 
         # take its place
 
-        print 1111, self.iid
         c.execute("UPDATE item SET hero_id=%(hid)s WHERE id=%(iid)s",
                   {"hid": hero.hid, "iid": self.iid})
 
